@@ -1,4 +1,6 @@
 import pygame
+import math
+
 pygame.init()
 
 window_width = 1280
@@ -19,7 +21,8 @@ vx = 0
 vy = 0
 
 gravity = 2560
-throwStrength = -1200
+throwStrength = 1200
+angle = 70
 onGround = True
 
 while running:
@@ -32,16 +35,20 @@ while running:
             if event.key == pygame.K_BACKSPACE:
                 running = False
 
-            if event.key == pygame.K_SPACE:
-                vy = throwStrength
+            if event.key == pygame.K_SPACE and onGround:
+                vx = throwStrength * math.cos(math.radians(angle))
+                vy = -throwStrength * math.sin(math.radians(angle))
                 onGround = False
 
-    vy += gravity * dt
-    y += vy * dt
+    if not onGround:
+        vy += gravity * dt
+        x += vx * dt
+        y += vy * dt
 
     if y >= 700:
         y = 700
         vy = 0
+        vx = 0
         onGround = True
 
     game_display.blit(bg_image, (0, 0)) #Draws (blits) the background image onto the game window at position (0, 0)
