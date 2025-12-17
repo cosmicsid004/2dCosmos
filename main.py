@@ -1,6 +1,23 @@
 import pygame
 import math
+import tkinter as tk
 
+#______________TKINTER___________________________________
+root = tk.Tk()
+root.title("Control PLanel")
+tkHeight = 150
+tkWidth = 1280
+root.geometry(f"{tkWidth}x{tkHeight}+{320}+{0}")
+
+v = tk.Scale(root, from_= 0, to=100, width=40, length=400, label="Speed(m/s)", orient="horizontal")
+g = tk.Scale(root, from_= 0, to=100, width=40, length=400, label="Gravity(m/s2)", orient="horizontal")
+a = tk.Scale(root, from_= 0, to=90, width=40, length=400, label="Angle(dgree)", orient="horizontal")
+
+v.pack(side="left", padx=10)
+g.pack(side="left", padx=10)
+a.pack(side="left", padx=10)
+
+#------PYGAME-------------------------
 pygame.init()
 
 window_width = 1280
@@ -15,22 +32,20 @@ clock = pygame.time.Clock() # to limit the FPS
 keys = pygame.key.get_pressed()
 running = True
 
-x = 10
-y = 700
-vx = 0
-vy = 0
-
-# 100 pixels to 1 meter
-PPM = 100 
-
-gravity = 9.8 * PPM #m/s^2
-throwSpeedMPS = 1 #m/s
-throwStrength = throwSpeedMPS * PPM
-angle = 45
+x, y = 10, 700
+vx = vy = 0
+PPM = 50 # 50 pixels to 1 meter
 onGround = True
 
 while running:
     dt = clock.tick(60) / 1000.0 # delta time in seconds
+
+    throwSpeed = v.get()
+    gravity = g.get() * PPM
+    angle = a.get()
+
+    throwStrength = throwSpeed * PPM
+
     for event in pygame.event.get(): # to stop the window
         if event.type == pygame.QUIT:
             running = False
@@ -54,9 +69,10 @@ while running:
         vy = 0
         vx = 0
         onGround = True
-
+    
     game_display.blit(bg_image, (0, 0)) #Draws (blits) the background image onto the game window at position (0, 0)
     game_display.blit(ball, (x, y))
     pygame.display.update() # Updates the entire display to show the latest changes on the screen
+    root.update()
 
 pygame.quit()
