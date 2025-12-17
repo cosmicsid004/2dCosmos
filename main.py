@@ -20,9 +20,13 @@ y = 700
 vx = 0
 vy = 0
 
-gravity = 2560
-throwStrength = 1200
-angle = 70
+# 100 pixels to 1 meter
+PPM = 100 
+
+gravity = 9.8 * PPM #m/s^2
+throwSpeedMPS = 1 #m/s
+throwStrength = throwSpeedMPS * PPM
+angle = 45
 onGround = True
 
 while running:
