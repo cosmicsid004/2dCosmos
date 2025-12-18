@@ -1,18 +1,22 @@
 import pygame
 import math
 import tkinter as tk
+from classBall import Ball
 
 #______________TKINTER___________________________________
 root = tk.Tk()
 root.title("Control PLanel")
-tkHeight = 150
+tkHeight = 120
 tkWidth = 1280
 root.geometry(f"{tkWidth}x{tkHeight}+{320}+{0}")
 
 v = tk.Scale(root, from_= 0, to=100, width=40, length=400, label="Speed(m/s)", orient="horizontal")
 g = tk.Scale(root, from_= 0, to=100, width=40, length=400, label="Gravity(m/s2)", orient="horizontal")
 a = tk.Scale(root, from_= 0, to=90, width=40, length=400, label="Angle(dgree)", orient="horizontal")
+airRes = tk.DoubleVar(value=1.0)
+airResButton = tk.Checkbutton(root, text="Air Resistence", variable=airRes, onvalue=0.999, offvalue=1.0)
 
+airResButton.pack()
 v.pack(side="left", padx=10)
 g.pack(side="left", padx=10)
 a.pack(side="left", padx=10)
@@ -25,23 +29,24 @@ window_height = 850
 game_display = pygame.display.set_mode((window_width, window_height))
 
 bg_image = pygame.image.load('background.jpeg').convert()
-ball = pygame.image.load('ball.png').convert_alpha()
-ball = pygame.transform.scale(ball, (150, 150))
+ball_image = pygame.image.load('ball.png').convert_alpha()
+ball_image = pygame.transform.scale(ball_image, (150, 150))
 
 clock = pygame.time.Clock() # to limit the FPS
-keys = pygame.key.get_pressed()
 running = True
+
+ball_radius = 50  # got from hit and trial
 
 restitution = 0.6 #bounce 
 friction = 0.85 #ground
 stop_threshold = 30
 air_drag = 0.999
 
-x, y = 10, 700
-vx = vy = 0
 PPM = 50 # 50 pixels to 1 meter
-onGround = True
 ground_y = 700 # the floor
+right_wall = 1200
+
+ball = Ball()
 
 while running:
     dt = clock.tick(60) / 1000.0 # delta time in seconds
@@ -60,32 +65,34 @@ while running:
             if event.key == pygame.K_BACKSPACE:
                 running = False
 
-            if event.key == pygame.K_SPACE and onGround:
-                vx = throwStrength * math.cos(math.radians(angle))
-                vy = -throwStrength * math.sin(math.radians(angle))
-                onGround = False
+            if event.key == pygame.K_SPACE and ball.onGround:
+                ball.throw(throwStrength, angle)
 
-    if not onGround:
-        vy += gravity * dt
-        vx *= air_drag # resistence due to air drag
-        vy *= air_drag
+    if not ball.onGround:
+        ball.update(dt, gravity, airRes.get())
 
-        x += vx * dt
-        y += vy * dt
-
-    if y >= ground_y:
-        y = ground_y
+    if ball.y + ball_radius >= ground_y:
+        ball.y = ground_y - ball_radius
         
-        if abs(vy) > stop_threshold:
-            vy = -vy * restitution
-            vs = vx * friction
+        if abs(ball.vy) > stop_threshold:
+            ball.vy = -ball.vy * restitution
+            ball.vx = ball.vx * friction
         else:
-            vx = 0
-            vy = 0
-            onGround = True
+            ball.vx = 0
+            ball.vy = 0
+            ball.onGround = True
+
+    if ball.x + ball_radius >= right_wall:
+        ball.x = right_wall - ball_radius
+        ball.vx = -ball.vx * restitution
+
+    elif ball.x + ball_radius <= 0:
+        ball.x = 0 - ball_radius
+        ball.vx = -ball.vx * restitution
+
 
     game_display.blit(bg_image, (0, 0)) #Draws (blits) the background image onto the game window at position (0, 0)
-    game_display.blit(ball, (x, y))
+    game_display.blit(ball_image, (ball.x, ball.y)) #drawing from sentre
     pygame.display.update() # Updates the entire display to show the latest changes on the screen
     root.update()
 
