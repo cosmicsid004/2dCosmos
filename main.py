@@ -32,10 +32,16 @@ clock = pygame.time.Clock() # to limit the FPS
 keys = pygame.key.get_pressed()
 running = True
 
+restitution = 0.6 #bounce 
+friction = 0.85 #ground
+stop_threshold = 30
+air_drag = 0.999
+
 x, y = 10, 700
 vx = vy = 0
 PPM = 50 # 50 pixels to 1 meter
 onGround = True
+ground_y = 700 # the floor
 
 while running:
     dt = clock.tick(60) / 1000.0 # delta time in seconds
@@ -61,15 +67,23 @@ while running:
 
     if not onGround:
         vy += gravity * dt
+        vx *= air_drag # resistence due to air drag
+        vy *= air_drag
+
         x += vx * dt
         y += vy * dt
 
-    if y >= 700:
-        y = 700
-        vy = 0
-        vx = 0
-        onGround = True
-    
+    if y >= ground_y:
+        y = ground_y
+        
+        if abs(vy) > stop_threshold:
+            vy = -vy * restitution
+            vs = vx * friction
+        else:
+            vx = 0
+            vy = 0
+            onGround = True
+
     game_display.blit(bg_image, (0, 0)) #Draws (blits) the background image onto the game window at position (0, 0)
     game_display.blit(ball, (x, y))
     pygame.display.update() # Updates the entire display to show the latest changes on the screen
